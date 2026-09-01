@@ -3,6 +3,7 @@ import helmet from "helmet"
 import cors from "cors"
 import swaggerUi from "swagger-ui-express"
 import { config } from "./config/env.js"
+import { swaggerSpec } from "./config/swagger.js"
 import { apiLimiter } from "./middleware/rateLimit.js"
 import { notFound, errorHandler } from "./middleware/error.js"
 import { logger } from "./config/logger.js"
@@ -36,23 +37,17 @@ app.use(express.urlencoded({ extended: true }))
 app.use(apiLimiter)
 
 // Swagger
-const swaggerSpec = {
-  openapi: "3.0.0",
-  info: {
-    title: "Sinza Fashion API",
-    version: "1.0.0",
-    description: "Multi-branch retail ERP/POS backend for Sinza Fashion",
+const swaggerOptions = {
+  explorer: true,
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    filter: true,
+    showExtensions: true,
+    showCommonExtensions: true,
   },
-  servers: [{ url: `http://178.104.240.146:${config.port}/api/v1` }],
-  components: {
-    securitySchemes: {
-      bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
-    },
-  },
-  security: [{ bearerAuth: [] }],
-  paths: {},
 }
-app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec))
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, swaggerOptions))
 
 // Health check
 app.get("/health", (req, res) => {
