@@ -40,7 +40,7 @@ const swaggerSpec = {
     version: "1.0.0",
     description: "Multi-branch retail ERP/POS backend for Sinza Fashion",
   },
-  servers: [{ url: `http://localhost:${config.port}/api/v1` }],
+  servers: [{ url: `http://178.104.240.146:${config.port}/api/v1` }],
   components: {
     securitySchemes: {
       bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },

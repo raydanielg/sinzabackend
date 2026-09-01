@@ -9,7 +9,7 @@ export const config = {
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "sinza_refresh_secret_key_2024",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "15m",
   jwtRefreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
-  corsOrigin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  corsOrigin: process.env.FRONTEND_URL || process.env.CORS_ORIGIN || "http://localhost:3000",
   logLevel: process.env.LOG_LEVEL || "info",
   smtpHost: process.env.SMTP_HOST || "",
   smtpPort: parseInt(process.env.SMTP_PORT || "587", 10),
