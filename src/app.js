@@ -26,8 +26,11 @@ import settingRoutes from "./modules/settings/settingRoutes.js"
 
 const app = express()
 
-app.use(helmet())
-app.use(cors({ origin: config.corsOrigin, credentials: true }))
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}))
+app.use(cors({ origin: "*", credentials: false }))
 app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ extended: true }))
 app.use(apiLimiter)
