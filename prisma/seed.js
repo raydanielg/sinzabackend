@@ -313,14 +313,14 @@ async function main() {
         create: { branchId: sinza.id, variantId: variant.id, quantity: 20, reorderLevel: 10 },
       })
       await prisma.branchStock.upsert({
-        where: { branchId_variantId: { branchId: kariakoo.id, variantId: variant.id } },
+        where: { branchId_variantId: { branchId: kivulini.id, variantId: variant.id } },
         update: {},
-        create: { branchId: kariakoo.id, variantId: variant.id, quantity: 15, reorderLevel: 10 },
+        create: { branchId: kivulini.id, variantId: variant.id, quantity: 15, reorderLevel: 10 },
       })
       await prisma.branchStock.upsert({
-        where: { branchId_variantId: { branchId: mwanza.id, variantId: variant.id } },
+        where: { branchId_variantId: { branchId: arusha.id, variantId: variant.id } },
         update: {},
-        create: { branchId: mwanza.id, variantId: variant.id, quantity: 5, reorderLevel: 10 },
+        create: { branchId: arusha.id, variantId: variant.id, quantity: 5, reorderLevel: 10 },
       })
     }
   }
