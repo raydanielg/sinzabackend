@@ -26,6 +26,8 @@ import accountingRoutes from "./modules/accounting/accountingRoutes.js"
 import auditLogRoutes from "./modules/auditLogs/auditLogRoutes.js"
 import notificationRoutes from "./modules/notifications/notificationRoutes.js"
 import settingRoutes from "./modules/settings/settingRoutes.js"
+import hrRoutes from "./modules/hr/hrRoutes.js"
+import employeeTransactionRoutes from "./modules/transactions/employeeTransactionRoutes.js"
 
 const app = express()
 
@@ -74,6 +76,8 @@ app.use("/api/v1/accounting", accountingRoutes)
 app.use("/api/v1/audit-logs", auditLogRoutes)
 app.use("/api/v1/notifications", notificationRoutes)
 app.use("/api/v1/settings", settingRoutes)
+app.use("/api/v1/hr", hrRoutes)
+app.use("/api/v1/transactions", employeeTransactionRoutes)
 
 app.use(notFound)
 app.use(errorHandler)

@@ -43,6 +43,8 @@ model Company {
   notifications Notification[]
   accountGroups AccountGroup[]
   accounts     Account[]
+  departments  Department[]
+  employees    Employee[]
 }
 
 // ==================== BRANCH ====================
@@ -77,6 +79,16 @@ model Branch {
   saleReturns    SaleReturn[]
   invoices       Invoice[]
   accounts       Account[]
+  departments    Department[]
+  employees      Employee[]
+  attendance     Attendance[]
+  payrolls       Payroll[]
+  leaveRequests  LeaveRequest[]
+  employeeAllowances EmployeeAllowance[]
+  employeeDeductions EmployeeDeduction[]
+  employeeLoans  EmployeeLoan[]
+  payrollLiabilities PayrollLiability[]
+  midMonthPayrolls MidMonthPayroll[]
 
   @@index([companyId])
 }
@@ -120,6 +132,8 @@ model User {
   expensesApproved Expense[] @relation("ExpenseApprovedBy")
   invoices        Invoice[]
   notifications   Notification[]
+  employee        Employee[]
+  leaveApproved   LeaveRequest[] @relation("LeaveApprovedBy")
 
   @@index([companyId])
   @@index([branchId])
@@ -863,5 +877,261 @@ model Account {
   @@index([companyId])
   @@index([groupId])
   @@index([parentId])
+  @@index([branchId])
+}
+
+// ==================== HR / EMPLOYEES ====================
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  description String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companyId   String
+  company     Company  @relation(fields: [companyId], references: [id])
+
+  branchId    String?
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+
+  employees   Employee[]
+
+  @@unique([name, companyId])
+  @@index([companyId])
+  @@index([branchId])
+}
+
+model Employee {
+  id             String   @id @default(cuid())
+  employeeNumber String   @unique
+  firstName      String
+  lastName       String
+  email          String
+  phone          String   @default("")
+  address        String   @default("")
+  gender         String   @default("male")
+  dateOfBirth    DateTime?
+  position       String
+  employmentType String   @default("full_time")
+  hireDate       DateTime
+  salary         Float    @default(0)
+  allowance      Float    @default(0)
+  status         String   @default("active")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  companyId      String
+  company        Company  @relation(fields: [companyId], references: [id])
+
+  branchId       String?
+  branch         Branch?  @relation(fields: [branchId], references: [id])
+
+  departmentId   String?
+  department     Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  attendance     Attendance[]
+  payrolls       Payroll[]
+  leaveRequests  LeaveRequest[]
+  allowances     EmployeeAllowance[]
+  deductions     EmployeeDeduction[]
+  loans          EmployeeLoan[]
+  payrollLiabilities PayrollLiability[]
+  midMonthPayrolls MidMonthPayroll[]
+
+  @@index([companyId])
+  @@index([branchId])
+  @@index([departmentId])
+}
+
+model Attendance {
+  id           String   @id @default(cuid())
+  date         DateTime
+  checkIn      DateTime?
+  checkOut     DateTime?
+  status       String   @default("present")
+  notes        String   @default("")
+  workHours    Float    @default(0)
+  overtimeHours Float   @default(0)
+  createdAt    DateTime @default(now())
+
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId     String?
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model Payroll {
+  id             String   @id @default(cuid())
+  payrollNumber  String   @unique
+  month          Int
+  year           Int
+  basicSalary    Float    @default(0)
+  allowances     Float    @default(0)
+  overtimePay    Float    @default(0)
+  deductions     Float    @default(0)
+  taxDeduction   Float    @default(0)
+  netPay         Float    @default(0)
+  status         String   @default("pending")
+  paymentDate    DateTime?
+  paymentMethod  String   @default("")
+  reference      String   @default("")
+  createdAt      DateTime @default(now())
+
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId       String?
+  branch         Branch?  @relation(fields: [branchId], references: [id])
+
+  liabilities    PayrollLiability[]
+
+  @@index([employeeId])
+  @@index([branchId])
+  @@index([year, month])
+}
+
+model LeaveRequest {
+  id            String   @id @default(cuid())
+  leaveNumber   String   @unique
+  type          String   @default("annual")
+  startDate     DateTime
+  endDate       DateTime
+  days          Int      @default(1)
+  reason        String   @default("")
+  status        String   @default("pending")
+  approvedAt    DateTime?
+  createdAt     DateTime @default(now())
+
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  approvedById   String?
+  approvedBy     User?    @relation("LeaveApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model EmployeeAllowance {
+  id            String   @id @default(cuid())
+  type          String
+  amount        Float    @default(0)
+  frequency     String   @default("monthly")
+  effectiveDate DateTime
+  endDate       DateTime?
+  status        String   @default("active")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model EmployeeDeduction {
+  id            String   @id @default(cuid())
+  type          String
+  amount        Float    @default(0)
+  frequency     String   @default("monthly")
+  effectiveDate DateTime
+  endDate       DateTime?
+  status        String   @default("active")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  employeeId    String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model EmployeeLoan {
+  id                String   @id @default(cuid())
+  loanNumber        String   @unique
+  principalAmount   Float    @default(0)
+  interestRate      Float    @default(0)
+  totalRepayable    Float    @default(0)
+  paidAmount        Float    @default(0)
+  balance           Float    @default(0)
+  installmentAmount Float    @default(0)
+  installments      Int      @default(1)
+  paidInstallments  Int      @default(0)
+  startDate         DateTime
+  status            String   @default("active")
+  notes             String   @default("")
+  createdAt         DateTime @default(now())
+
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId          String?
+  branch            Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model PayrollLiability {
+  id                String   @id @default(cuid())
+  liabilityNumber   String   @unique
+  type              String
+  amount            Float    @default(0)
+  paidAmount        Float    @default(0)
+  balance           Float    @default(0)
+  dueDate           DateTime
+  status            String   @default("pending")
+  createdAt         DateTime @default(now())
+
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  payrollId         String?
+  payroll           Payroll? @relation(fields: [payrollId], references: [id], onDelete: SetNull)
+
+  branchId          String?
+  branch            Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
+  @@index([branchId])
+}
+
+model MidMonthPayroll {
+  id                String   @id @default(cuid())
+  midMonthNumber    String   @unique
+  amount            Float    @default(0)
+  month             Int
+  year              Int
+  status            String   @default("pending")
+  paymentDate       DateTime?
+  notes             String   @default("")
+  createdAt         DateTime @default(now())
+
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  branchId          String?
+  branch            Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([employeeId])
   @@index([branchId])
 }

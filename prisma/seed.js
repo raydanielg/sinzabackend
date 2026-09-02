@@ -36,6 +36,12 @@ const PERMISSIONS = [
   { name: "company.manage", module: "company", description: "Manage company" },
   { name: "settings.manage", module: "settings", description: "Manage settings" },
   { name: "audit.view", module: "audit", description: "View audit logs" },
+  { name: "hr.view", module: "hr", description: "View employees and HR data" },
+  { name: "hr.create", module: "hr", description: "Create employees and HR records" },
+  { name: "hr.update", module: "hr", description: "Update employees and HR records" },
+  { name: "hr.delete", module: "hr", description: "Delete employees and HR records" },
+  { name: "accounting.view", module: "accounting", description: "View accounting data" },
+  { name: "accounting.create", module: "accounting", description: "Create accounting records" },
 ]
 
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "32", "34", "36", "38"]
