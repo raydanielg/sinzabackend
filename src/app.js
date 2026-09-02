@@ -28,6 +28,10 @@ import notificationRoutes from "./modules/notifications/notificationRoutes.js"
 import settingRoutes from "./modules/settings/settingRoutes.js"
 import hrRoutes from "./modules/hr/hrRoutes.js"
 import employeeTransactionRoutes from "./modules/transactions/employeeTransactionRoutes.js"
+import generalTransactionRoutes from "./modules/transactions/generalTransactionRoutes.js"
+import { authenticate } from "./middleware/auth.js"
+import { hasPermission } from "./middleware/permission.js"
+import * as userCtrl from "./modules/users/userController.js"
 
 const app = express()
 
@@ -78,6 +82,16 @@ app.use("/api/v1/notifications", notificationRoutes)
 app.use("/api/v1/settings", settingRoutes)
 app.use("/api/v1/hr", hrRoutes)
 app.use("/api/v1/transactions", employeeTransactionRoutes)
+app.use("/api/v1/transactions", generalTransactionRoutes)
+
+// Roles routes (also accessible at /api/v1/roles for frontend compatibility)
+const rolesRouter = express.Router()
+rolesRouter.use(authenticate)
+rolesRouter.get("/", hasPermission("users.view"), userCtrl.listRoles)
+rolesRouter.post("/", hasPermission("users.manage"), userCtrl.createRole)
+rolesRouter.put("/:id", hasPermission("users.manage"), userCtrl.updateRole)
+rolesRouter.delete("/:id", hasPermission("users.manage"), userCtrl.deleteRole)
+app.use("/api/v1/roles", rolesRouter)
 
 app.use(notFound)
 app.use(errorHandler)

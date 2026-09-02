@@ -89,6 +89,19 @@ model Branch {
   employeeLoans  EmployeeLoan[]
   payrollLiabilities PayrollLiability[]
   midMonthPayrolls MidMonthPayroll[]
+  vendorCredits     VendorCredit[]
+  subscriptionSales SubscriptionSale[]
+  salesRefunds      SalesRefund[]
+  salesOrders       SalesOrder[]
+  giveLoans         GiveLoan[]
+  loanRepayments    LoanRepayment[]
+  fundTransfers     FundTransfer[]
+  journalEntries    JournalEntry[]
+  creditSales       CreditSale[]
+  creditMemos       CreditMemo[]
+  ownersDrawings    OwnersDrawing[]
+  ownersDeposits    OwnersDeposit[]
+  loanDeposits      LoanDeposit[]
 
   @@index([companyId])
 }
@@ -593,6 +606,7 @@ model Supplier {
 
   purchases     Purchase[]
   payments      SupplierPayment[]
+  vendorCredits VendorCredit[]
 
   @@index([companyId])
 }
@@ -635,6 +649,11 @@ model Customer {
   sales          Sale[]
   saleReturns    SaleReturn[]
   invoices       Invoice[]
+  subscriptionSales SubscriptionSale[]
+  salesRefunds      SalesRefund[]
+  salesOrders       SalesOrder[]
+  creditSales       CreditSale[]
+  creditMemos       CreditMemo[]
 
   @@index([companyId])
 }
@@ -1133,5 +1152,272 @@ model MidMonthPayroll {
   branch            Branch?  @relation(fields: [branchId], references: [id])
 
   @@index([employeeId])
+  @@index([branchId])
+}
+
+// ==================== GENERAL TRANSACTIONS ====================
+
+model VendorCredit {
+  id            String   @id @default(cuid())
+  creditNumber  String   @unique
+  amount        Float    @default(0)
+  appliedAmount Float    @default(0)
+  balance       Float    @default(0)
+  reason        String   @default("")
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+
+  supplierId    String
+  supplier      Supplier @relation(fields: [supplierId], references: [id])
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([supplierId])
+  @@index([branchId])
+}
+
+model SubscriptionSale {
+  id                 String   @id @default(cuid())
+  subscriptionNumber String   @unique
+  planName           String
+  amount             Float    @default(0)
+  billingCycle       String   @default("monthly")
+  startDate          DateTime
+  autoRenew          Boolean  @default(false)
+  status             String   @default("active")
+  createdAt          DateTime @default(now())
+
+  customerId         String
+  customer           Customer @relation(fields: [customerId], references: [id])
+
+  branchId           String?
+  branch             Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([customerId])
+  @@index([branchId])
+}
+
+model SalesRefund {
+  id            String   @id @default(cuid())
+  refundNumber  String   @unique
+  amount        Float    @default(0)
+  reason        String   @default("")
+  refundMethod  String   @default("cash")
+  status        String   @default("processed")
+  createdAt     DateTime @default(now())
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([customerId])
+  @@index([branchId])
+}
+
+model SalesOrder {
+  id                   String    @id @default(cuid())
+  orderNumber          String    @unique
+  orderDate            DateTime
+  expectedDeliveryDate DateTime?
+  notes                String    @default("")
+  status               String    @default("pending")
+  createdAt            DateTime  @default(now())
+
+  customerId           String
+  customer             Customer  @relation(fields: [customerId], references: [id])
+
+  branchId             String?
+  branch               Branch?   @relation(fields: [branchId], references: [id])
+
+  @@index([customerId])
+  @@index([branchId])
+}
+
+model GiveLoan {
+  id                String   @id @default(cuid())
+  loanNumber        String   @unique
+  borrowerName      String
+  borrowerType      String   @default("customer")
+  principalAmount   Float    @default(0)
+  interestRate      Float    @default(0)
+  totalRepayable    Float    @default(0)
+  paidAmount        Float    @default(0)
+  balance           Float    @default(0)
+  installmentAmount Float    @default(0)
+  installments      Int      @default(1)
+  paidInstallments  Int      @default(0)
+  startDate         DateTime
+  status            String   @default("active")
+  notes             String   @default("")
+  createdAt         DateTime @default(now())
+
+  branchId          String?
+  branch            Branch?  @relation(fields: [branchId], references: [id])
+
+  repayments        LoanRepayment[]
+
+  @@index([branchId])
+}
+
+model LoanRepayment {
+  id               String   @id @default(cuid())
+  repaymentNumber  String   @unique
+  amount           Float    @default(0)
+  principalPortion Float    @default(0)
+  interestPortion  Float    @default(0)
+  date             DateTime
+  paymentMethod    String   @default("cash")
+  reference        String   @default("")
+  status           String   @default("completed")
+  createdAt        DateTime @default(now())
+
+  loanId           String
+  loan             GiveLoan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  branchId         String?
+  branch           Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([loanId])
+  @@index([branchId])
+}
+
+model FundTransfer {
+  id              String   @id @default(cuid())
+  transferNumber  String   @unique
+  fromAccount     String
+  toAccount       String
+  amount          Float    @default(0)
+  fee             Float    @default(0)
+  date            DateTime
+  reference       String   @default("")
+  notes           String   @default("")
+  status          String   @default("completed")
+  createdAt       DateTime @default(now())
+
+  branchId        String?
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+}
+
+model JournalEntry {
+  id            String   @id @default(cuid())
+  entryNumber   String   @unique
+  date          DateTime
+  description   String
+  reference     String   @default("")
+  status        String   @default("posted")
+  createdAt     DateTime @default(now())
+
+  lines         JournalLine[]
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+}
+
+model JournalLine {
+  id              String   @id @default(cuid())
+  accountCode     String   @default("")
+  accountName     String   @default("")
+  debit           Float    @default(0)
+  credit          Float    @default(0)
+  description     String   @default("")
+
+  journalEntryId  String
+  journalEntry    JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+
+  @@index([journalEntryId])
+}
+
+model CreditSale {
+  id            String   @id @default(cuid())
+  creditNumber  String   @unique
+  amount        Float    @default(0)
+  interestRate  Float    @default(0)
+  dueDate       DateTime?
+  notes         String   @default("")
+  status        String   @default("open")
+  createdAt     DateTime @default(now())
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([customerId])
+  @@index([branchId])
+}
+
+model CreditMemo {
+  id            String   @id @default(cuid())
+  memoNumber    String   @unique
+  amount        Float    @default(0)
+  reason        String   @default("")
+  status        String   @default("issued")
+  createdAt     DateTime @default(now())
+
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id])
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([customerId])
+  @@index([branchId])
+}
+
+model OwnersDrawing {
+  id            String   @id @default(cuid())
+  drawingNumber String   @unique
+  ownerName     String
+  amount        Float    @default(0)
+  date          DateTime
+  account       String   @default("cash")
+  reason        String   @default("")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+}
+
+model OwnersDeposit {
+  id            String   @id @default(cuid())
+  depositNumber String   @unique
+  ownerName     String
+  amount        Float    @default(0)
+  date          DateTime
+  account       String   @default("cash")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+}
+
+model LoanDeposit {
+  id            String   @id @default(cuid())
+  loanNumber    String   @unique
+  borrowerName  String
+  lenderName    String   @default("")
+  amount        Float    @default(0)
+  date          DateTime
+  notes         String   @default("")
+  status        String   @default("active")
+  createdAt     DateTime @default(now())
+
+  branchId      String?
+  branch        Branch?  @relation(fields: [branchId], references: [id])
+
   @@index([branchId])
 }
