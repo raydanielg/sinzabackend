@@ -212,6 +212,132 @@ export async function cashiersReport(filters = {}) {
   return { cashiers: Object.values(byCashier) }
 }
 
+export async function executiveAnalytics(filters = {}) {
+  const branchId = filters.branchId
+  const year = parseInt(filters.year) || new Date().getFullYear()
+  const withComparison = filters.withComparison === "1" || filters.withComparison === "true"
+
+  const yearStart = new Date(year, 0, 1)
+  const yearEnd = new Date(year, 11, 31, 23, 59, 59, 999)
+  const prevYearStart = new Date(year - 1, 0, 1)
+  const prevYearEnd = new Date(year - 1, 11, 31, 23, 59, 59, 999)
+
+  const saleWhere = { status: "completed", createdAt: { gte: yearStart, lte: yearEnd } }
+  const expenseWhere = { status: "approved", expenseDate: { gte: yearStart, lte: yearEnd } }
+  const invoiceWhere = { createdAt: { gte: yearStart, lte: yearEnd } }
+  const purchaseWhere = { createdAt: { gte: yearStart, lte: yearEnd } }
+  if (branchId) {
+    saleWhere.branchId = branchId
+    expenseWhere.branchId = branchId
+    invoiceWhere.branchId = branchId
+    purchaseWhere.branchId = branchId
+  }
+
+  const [sales, expenses, invoices, purchases, saleItems] = await Promise.all([
+    prisma.sale.findMany({ where: saleWhere, include: { items: true, payments: true } }),
+    prisma.expense.findMany({ where: expenseWhere }),
+    prisma.invoice.findMany({ where: invoiceWhere }),
+    prisma.purchase.findMany({ where: purchaseWhere }),
+    prisma.saleItem.findMany({ where: { sale: saleWhere }, include: { variant: { include: { product: true } } } }),
+  ])
+
+  // Summary cards
+  const revenue = sales.reduce((sum, s) => sum + s.total, 0)
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
+
+  const invoiceTotal = invoices.reduce((sum, i) => sum + i.totalAfterDiscount, 0)
+  const invoicePaid = invoices.reduce((sum, i) => sum + i.paidAmount, 0)
+  const invoiceUnpaid = invoiceTotal - invoicePaid
+
+  const billTotal = purchases.reduce((sum, p) => sum + p.totalAmount, 0)
+  const billPaid = purchases.reduce((sum, p) => sum + p.paidAmount, 0)
+  const billUnpaid = billTotal - billPaid
+
+  // Monthly data
+  const months = []
+  for (let m = 0; m < 12; m++) {
+    const label = new Date(year, m, 1).toLocaleDateString("en-US", { month: "short", year: "numeric" })
+    months.push({
+      label,
+      cashIncoming: 0,
+      cashOutgoing: 0,
+      sales: 0,
+      expenses: 0,
+      netProfit: 0,
+    })
+  }
+
+  for (const s of sales) {
+    const m = s.createdAt.getMonth()
+    months[m].sales += s.total
+    const payments = s.payments || []
+    for (const p of payments) {
+      months[m].cashIncoming += p.amount || 0
+    }
+  }
+
+  for (const e of expenses) {
+    const m = (e.expenseDate || e.createdAt).getMonth()
+    months[m].expenses += e.amount
+    months[m].cashOutgoing += e.amount
+  }
+
+  // COGS per month
+  for (const si of saleItems) {
+    const m = si.sale.createdAt.getMonth()
+    const cogs = si.costPrice * si.quantity
+    months[m].netProfit -= cogs
+  }
+
+  for (let m = 0; m < 12; m++) {
+    months[m].netProfit += months[m].sales - months[m].expenses
+  }
+
+  // Top products by revenue and qty
+  const productMap = {}
+  for (const si of saleItems) {
+    const name = si.variant?.product?.name || "Unknown"
+    if (!productMap[name]) productMap[name] = { name, revenue: 0, qty: 0 }
+    productMap[name].revenue += si.total
+    productMap[name].qty += si.quantity
+  }
+
+  const topByRevenue = Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 10)
+  const topByQty = Object.values(productMap).sort((a, b) => b.qty - a.qty).slice(0, 10)
+
+  // Comparison data
+  let comparison = null
+  if (withComparison) {
+    const prevSaleWhere = { status: "completed", createdAt: { gte: prevYearStart, lte: prevYearEnd } }
+    const prevExpenseWhere = { status: "approved", expenseDate: { gte: prevYearStart, lte: prevYearEnd } }
+    if (branchId) {
+      prevSaleWhere.branchId = branchId
+      prevExpenseWhere.branchId = branchId
+    }
+    const [prevSales, prevExpenses] = await Promise.all([
+      prisma.sale.aggregate({ where: prevSaleWhere, _sum: { total: true } }),
+      prisma.expense.aggregate({ where: prevExpenseWhere, _sum: { amount: true } }),
+    ])
+    comparison = {
+      revenue: prevSales._sum.total || 0,
+      expenses: prevExpenses._sum.amount || 0,
+    }
+  }
+
+  return {
+    summary: {
+      revenue,
+      expenditures: totalExpenses,
+      invoices: { total: invoiceTotal, paid: invoicePaid, unpaid: invoiceUnpaid },
+      bills: { total: billTotal, paid: billPaid, unpaid: billUnpaid },
+    },
+    monthly: months,
+    topByRevenue,
+    topByQty,
+    comparison,
+  }
+}
+
 export async function branchesReport(filters = {}) {
   const branches = await prisma.branch.findMany({
     where: filters.companyId ? { companyId: filters.companyId } : {},

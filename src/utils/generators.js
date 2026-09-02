@@ -64,3 +64,11 @@ export function generateSku(productName, color, size) {
 export function generateSaleNumber(prefix = "SF") {
   return generateReceiptNo(prefix)
 }
+
+export function generateInvoiceNumber(prefix = "INV") {
+  const date = new Date()
+  const yy = String(date.getFullYear()).slice(2)
+  const mm = String(date.getMonth() + 1).padStart(2, "0")
+  const ts = Date.now().toString()
+  return `${prefix}/${yy}/${mm}/${ts}`
+}

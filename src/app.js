@@ -16,11 +16,13 @@ import companyRoutes from "./modules/company/companyRoutes.js"
 import productRoutes from "./modules/products/productRoutes.js"
 import inventoryRoutes from "./modules/inventory/inventoryRoutes.js"
 import saleRoutes from "./modules/sales/saleRoutes.js"
+import invoiceRoutes from "./modules/invoices/invoiceRoutes.js"
 import purchaseRoutes from "./modules/purchases/purchaseRoutes.js"
 import customerRoutes from "./modules/customers/customerRoutes.js"
 import expenseRoutes from "./modules/expenses/expenseRoutes.js"
 import cashRegisterRoutes from "./modules/cashRegister/cashRegisterRoutes.js"
 import reportRoutes from "./modules/reports/reportRoutes.js"
+import accountingRoutes from "./modules/accounting/accountingRoutes.js"
 import auditLogRoutes from "./modules/auditLogs/auditLogRoutes.js"
 import notificationRoutes from "./modules/notifications/notificationRoutes.js"
 import settingRoutes from "./modules/settings/settingRoutes.js"
@@ -62,11 +64,13 @@ app.use("/api/v1/company", companyRoutes)
 app.use("/api/v1/products", productRoutes)
 app.use("/api/v1/inventory", inventoryRoutes)
 app.use("/api/v1/sales", saleRoutes)
+app.use("/api/v1/invoices", invoiceRoutes)
 app.use("/api/v1/purchases", purchaseRoutes)
 app.use("/api/v1/customers", customerRoutes)
 app.use("/api/v1/expenses", expenseRoutes)
 app.use("/api/v1/cash-register", cashRegisterRoutes)
 app.use("/api/v1/reports", reportRoutes)
+app.use("/api/v1/accounting", accountingRoutes)
 app.use("/api/v1/audit-logs", auditLogRoutes)
 app.use("/api/v1/notifications", notificationRoutes)
 app.use("/api/v1/settings", settingRoutes)

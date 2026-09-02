@@ -16,5 +16,6 @@ router.get("/purchases", hasPermission("reports.view"), ctrl.purchasesReport)
 router.get("/products", hasPermission("reports.view"), ctrl.productsReport)
 router.get("/cashiers", hasPermission("reports.view"), ctrl.cashiersReport)
 router.get("/branches", hasPermission("reports.view"), ctrl.branchesReport)
+router.get("/executive", hasPermission("reports.view"), ctrl.executiveAnalytics)
 
 export default router

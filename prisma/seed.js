@@ -203,21 +203,21 @@ async function main() {
 
   // Branches
   const sinza = await prisma.branch.upsert({
-    where: { code: "SF-SINZA" },
-    update: {},
-    create: { name: "Sinza", code: "SF-SINZA", location: "Sinza, Dar es Salaam", phone: "+255 700 000 010", companyId: company.id, openingBalance: 500000 },
+    where: { code: "SC-HQ" },
+    update: { name: "SALMA CLASSIC WEAR HQ", location: "Headquarters, Dar es Salaam", phone: "+255 700 000 010" },
+    create: { name: "SALMA CLASSIC WEAR HQ", code: "SC-HQ", location: "Headquarters, Dar es Salaam", phone: "+255 700 000 010", companyId: company.id, openingBalance: 500000 },
   })
-  const kariakoo = await prisma.branch.upsert({
-    where: { code: "SF-KARIO" },
-    update: {},
-    create: { name: "Kariakoo", code: "SF-KARIO", location: "Kariakoo, Dar es Salaam", phone: "+255 700 000 011", companyId: company.id, openingBalance: 300000 },
+  const kivulini = await prisma.branch.upsert({
+    where: { code: "SC-KIV" },
+    update: { name: "SALMA CLASSIC - KIVULINI BRANCH", location: "Kivulini, Dar es Salaam", phone: "+255 700 000 011" },
+    create: { name: "SALMA CLASSIC - KIVULINI BRANCH", code: "SC-KIV", location: "Kivulini, Dar es Salaam", phone: "+255 700 000 011", companyId: company.id, openingBalance: 300000 },
   })
-  const mwanza = await prisma.branch.upsert({
-    where: { code: "SF-MWANZA" },
-    update: {},
-    create: { name: "Mwanza", code: "SF-MWANZA", location: "Mwanza City", phone: "+255 700 000 012", companyId: company.id, openingBalance: 200000 },
+  const arusha = await prisma.branch.upsert({
+    where: { code: "SC-ARU" },
+    update: { name: "SALMA CLASSIC - ARUSHA BRANCH", location: "Arusha City", phone: "+255 700 000 012" },
+    create: { name: "SALMA CLASSIC - ARUSHA BRANCH", code: "SC-ARU", location: "Arusha City", phone: "+255 700 000 012", companyId: company.id, openingBalance: 200000 },
   })
-  console.log(`Created 3 branches: Sinza, Kariakoo, Mwanza`)
+  console.log(`Created 3 branches: SALMA CLASSIC WEAR HQ, KIVULINI, ARUSHA`)
 
   // Sizes
   for (const size of SIZES) {
